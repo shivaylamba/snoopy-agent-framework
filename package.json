@@ -1,0 +1,21 @@
+{
+  "name": "snoopy-diffie",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Distributed agent framework: Flue harness + iii.dev runtime + Pi-style DX",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

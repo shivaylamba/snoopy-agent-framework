@@ -1,0 +1,36 @@
+{
+  "name": "@snoopy/core",
+  "version": "0.2.0",
+  "description": "Distributed agent framework — built entirely on iii primitives",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/unit.test.mjs",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "iii-sdk": "^0.12.0",
+    "zod": "^3.23.0",
+    "zod-to-json-schema": "^3.23.0",
+    "ioredis": "^5.4.0",
+    "pg": "^8.12.0",
+    "hono": "^4.6.0",
+    "@hono/node-server": "^1.13.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.11.0"
+  }
+}

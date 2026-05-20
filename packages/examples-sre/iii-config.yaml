@@ -1,0 +1,80 @@
+# iii engine config — pulls in the ecosystem workers snoopy benefits from.
+#
+# Setup (one-time):
+#   bash ../../scripts/setup-workers.sh   # installs the workers below
+#
+# Then start the engine with this config:
+#   iii --config iii-config.yaml
+#
+# The engine watches this file. Adding a worker via `iii worker add <name>`
+# appends to `workers:` and writes iii.lock; restart picks them up.
+
+workers:
+  # ─── built-in workers (always present, configured for file-backed state) ──
+  - name: iii-http
+    config:
+      port: 3111
+      host: 127.0.0.1
+      default_timeout: 180000
+      cors:
+        allowed_origins:
+          - "http://localhost:3111"
+          - "http://localhost:3113"
+          - "http://localhost:3210"   # snoopy dashboard
+        allowed_methods: [GET, POST, PUT, DELETE, OPTIONS]
+
+  - name: iii-state
+    config:
+      adapter:
+        name: kv
+        config:
+          # File-based so session history + dedupe cache survive restarts.
+          store_method: file_based
+          file_path: ./data/state_store.db
+
+  - name: iii-queue
+    config:
+      adapter:
+        name: builtin
+
+  - name: iii-pubsub
+    config:
+      adapter:
+        name: local
+
+  - name: iii-cron
+    config:
+      adapter:
+        name: kv
+
+  - name: iii-stream
+    config:
+      port: 3112
+      host: 127.0.0.1
+      adapter:
+        name: kv
+        config:
+          store_method: file_based
+          file_path: ./data/stream_store
+
+  - name: iii-observability
+    config:
+      enabled: true
+      service_name: snoopy
+      exporter: memory
+      sampling_ratio: 1.0
+      metrics_enabled: true
+      logs_enabled: true
+      logs_console_output: true
+
+  # ─── ecosystem workers from workers.iii.dev ───────────────────────────────
+  # Install via `iii worker add <name>`. The CLI appends them here automatically;
+  # uncomment manually if you want to declare them before install.
+  #
+  # - name: iii-sandbox            # isolated microVMs for tool exec
+  # - name: provider-openai        # OpenAI as iii::openai::chat
+  # - name: provider-anthropic     # Anthropic as iii::anthropic::messages
+  # - name: auth-credentials       # credential vault (replaces env vars in code)
+  # - name: turn-orchestrator      # optional: alternative to snoopy's reasoning loop
+  # - name: approval-gate          # human-in-the-loop function call approval
+  # - name: policy-denylist        # block specific function calls

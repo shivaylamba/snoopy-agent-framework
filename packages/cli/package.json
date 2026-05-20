@@ -1,0 +1,28 @@
+{
+  "name": "@snoopy/cli",
+  "version": "0.1.0",
+  "description": "The `agent` CLI for snoopy-diffie",
+  "type": "module",
+  "main": "./dist/bin.js",
+  "bin": {
+    "agent": "./dist/bin.js"
+  },
+  "files": ["dist", "templates"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/bin.js",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@snoopy/core": "workspace:*",
+    "iii-sdk": "^0.12.0",
+    "commander": "^12.0.0",
+    "chokidar": "^3.6.0",
+    "kleur": "^4.1.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0"
+  }
+}

@@ -1,0 +1,71 @@
+version: 1
+workers:
+  auth-credentials:
+    version: 0.2.0
+    type: binary
+    dependencies: {}
+    source:
+      kind: binary
+      artifacts:
+        aarch64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-aarch64-apple-darwin.tar.gz
+          sha256: 2516d94048dd8f8911a53159338cfc05dadd69f9db537ab694b60a5354f7813a
+        aarch64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-aarch64-pc-windows-msvc.zip
+          sha256: f4a242fdddc4dcf07a0e879b60a04db96e5fad24a5cf439cbc37e160789ef2c6
+        aarch64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-aarch64-unknown-linux-gnu.tar.gz
+          sha256: 00810a392a228098ce97cfea7eaf8a09de4969fc0d730f29d7c0d754a52fcddc
+        armv7-unknown-linux-gnueabihf:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-armv7-unknown-linux-gnueabihf.tar.gz
+          sha256: 928d3c20e622b4aef0df6ed2b0ddf9a2f436e084990d0e5db98c0e74022c5235
+        i686-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-i686-pc-windows-msvc.zip
+          sha256: 1b12fb2f6ba9f5c2ab13a0a373842883853f814487fd60285fb2d8805b27179d
+        x86_64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-x86_64-apple-darwin.tar.gz
+          sha256: a006fa9b3d971c69530f4f5bce2eb526222bc30f960300ac3244128a5fc10d75
+        x86_64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-x86_64-pc-windows-msvc.zip
+          sha256: 9b6e97106b4377b2ff64d8e666cc65f9928a85efed1977894995840d2dc53bdb
+        x86_64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-x86_64-unknown-linux-gnu.tar.gz
+          sha256: 2d184e0917c3f92c0720f279f5c6e55b0b88e4b0648df9018fadfdf11ddc90c1
+        x86_64-unknown-linux-musl:
+          url: https://github.com/iii-hq/workers/releases/download/auth-credentials/v0.2.0/auth-credentials-x86_64-unknown-linux-musl.tar.gz
+          sha256: 44dec75ac2f88e56e47d67ab50c85f4fc9feaa170ffb9b4b903eed2caa22e302
+  provider-openai:
+    version: 0.2.0
+    type: binary
+    dependencies:
+      auth-credentials: ^0.2.0
+    source:
+      kind: binary
+      artifacts:
+        aarch64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-aarch64-apple-darwin.tar.gz
+          sha256: cdf7a152372922ee95398bee52769309e709ae7a9f2401e640f1ea9a5121c485
+        aarch64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-aarch64-pc-windows-msvc.zip
+          sha256: 58f4b7b418900df91b143eed8752286bbb6cd8f3d6f8528f688c742e3fa505a9
+        aarch64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-aarch64-unknown-linux-gnu.tar.gz
+          sha256: ecc72df3a852f459dc92522d93fd3d42ce63cc8699f59c1e5143e70d26a2afd2
+        armv7-unknown-linux-gnueabihf:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-armv7-unknown-linux-gnueabihf.tar.gz
+          sha256: c6e3d0556d425217b0e5ca825690c6544a69a20529f42286b3b0c14d0c3a6a7a
+        i686-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-i686-pc-windows-msvc.zip
+          sha256: c2fd303e90984b9a7a6a298b8acdea9a8676e641029a92ecd9c1e72203f97c8b
+        x86_64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-x86_64-apple-darwin.tar.gz
+          sha256: c60ae06b0c904b73166684323a43837a87273f3c3341ab26aae06ae44b55312b
+        x86_64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-x86_64-pc-windows-msvc.zip
+          sha256: 1b3f04609b76858feec3f5b9a137f0af0cbd04e0bf3774579732210333d3950a
+        x86_64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-x86_64-unknown-linux-gnu.tar.gz
+          sha256: 1c676cf6f1e57178f61e49874f572ec5c5bbdee2bcbfd76a092aded09e939798
+        x86_64-unknown-linux-musl:
+          url: https://github.com/iii-hq/workers/releases/download/provider-openai/v0.2.0/provider-openai-x86_64-unknown-linux-musl.tar.gz
+          sha256: ae667d4ff72fc83e56b9f359c55fb3b6edea3bdde7d38a1bcc51d4c441bfde13

@@ -1,0 +1,6 @@
+workers:
+  - name: auth-credentials
+    config:
+      engine_url: ws://127.0.0.1:49134
+      store: iii_state
+  - name: provider-openai

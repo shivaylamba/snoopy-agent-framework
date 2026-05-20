@@ -1,0 +1,57 @@
+# iii engine config for the content-team example.
+# Setup:  bash ../../scripts/setup-workers.sh   then  iii --config iii-config.yaml
+
+workers:
+  - name: iii-http
+    config:
+      port: 3111
+      host: 127.0.0.1
+      default_timeout: 300000      # content workflows can take a few minutes
+      cors:
+        allowed_origins:
+          - "http://localhost:3111"
+          - "http://localhost:3210"   # snoopy dashboard
+        allowed_methods: [GET, POST, PUT, DELETE, OPTIONS]
+
+  - name: iii-state
+    config:
+      adapter:
+        name: kv
+        config:
+          store_method: file_based
+          file_path: ./data/state_store.db   # run records survive engine restart
+
+  - name: iii-queue
+    config:
+      adapter: { name: builtin }
+
+  - name: iii-pubsub
+    config:
+      adapter: { name: local }
+
+  - name: iii-cron
+    config:
+      adapter: { name: kv }
+
+  - name: iii-stream
+    config:
+      port: 3112
+      host: 127.0.0.1
+      adapter:
+        name: kv
+        config: { store_method: file_based, file_path: ./data/stream_store }
+
+  - name: iii-observability
+    config:
+      enabled: true
+      service_name: content-team
+      exporter: memory
+      sampling_ratio: 1.0
+      metrics_enabled: true
+      logs_enabled: true
+      logs_console_output: true
+
+  # ─── recommended ecosystem workers (uncomment after `iii worker add <name>`) ─
+  # - name: provider-openai     # then route llm calls via sdk.trigger("openai::chat")
+  # - name: auth-credentials    # then fetch SERPAPI_API_KEY via credentials::get
+  # - name: iii-sandbox         # then run URL extraction in an isolated VM

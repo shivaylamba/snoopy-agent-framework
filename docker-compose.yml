@@ -1,0 +1,34 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: snoopy
+      POSTGRES_PASSWORD: snoopy
+      POSTGRES_DB: snoopy
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "snoopy"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+# NOTE: the iii engine is NOT a Docker image — it's a native binary you install
+# with `curl -fsSL https://iii.dev/install.sh | sh`. Start it in a separate
+# terminal with `iii --config config.yaml` (default port 49134 for WS,
+# 3113 for HTTP per current iii docs). See docs/SRE_DEMO.md for full setup.
+
+volumes:
+  pgdata:
