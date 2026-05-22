@@ -9,7 +9,7 @@
  * are zero-abstraction: they exist to call iii primitives, not to wrap
  * them. User code never sees these — they're internal.
  *
- * If you want this surface from user code, use `ctx.sdk.trigger` directly.
+ * If you want this surface from user code, use `ctx.iii.trigger` directly.
  */
 import type { ISdk } from "iii-sdk";
 

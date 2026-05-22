@@ -7,7 +7,7 @@
 │  L3: snoopy (agent-specific glue — what we own)                          │
 │                                                                          │
 │  • defineAgent / defineTool / defineTrigger                              │
-│  • Session class (prompt/skill/task/shell/fs/compact)                    │
+│  • Session class (prompt/skill/shell/fs/compact)                         │
 │  • MCP server export (snoopy agents → MCP host tools)                    │
 │  • Dashboard + traces server                                             │
 │  • Dedupe (hash + semantic), conversation persistence                    │
@@ -61,7 +61,7 @@ in the iii registry — you `iii worker add <name>` and they're there.
 The corrected positioning:
 
 - snoopy provides **only** what's *agent-specific* and not already in the iii ecosystem
-- For everything else, users `iii worker add <worker-name>` and call functions directly via `sdk.trigger({function_id: "..."})`
+- For everything else, users `iii worker add <worker-name>` and call functions directly via `iii.trigger({function_id: "..."})`
 - Our `StateKV` / `IIIStore` / `IIIState` classes are **typed sugar**, not required abstraction
 
 ## What snoopy actually contributes (the agent-specific glue)
@@ -116,26 +116,26 @@ import { registerWorker } from "iii-sdk";
 import { defineAgent, defineTool, defineTrigger } from "@snoopy/core";
 import { z } from "zod";
 
-const sdk = registerWorker(process.env.III_WS_URL!);
+const iii = registerWorker(process.env.III_WS_URL!);
 
 // State — call iii-state worker directly. No wrapper class needed.
-await sdk.trigger({
+await iii.trigger({
   function_id: "state::set",
   payload: { scope: "incidents", key: "inc_42", value: { status: "open" } },
 });
-const incident = await sdk.trigger({
+const incident = await iii.trigger({
   function_id: "state::get",
   payload: { scope: "incidents", key: "inc_42" },
 });
 
 // Sandbox — call iii-sandbox worker directly.
-const result = await sdk.trigger({
+const result = await iii.trigger({
   function_id: "sandbox::exec",
   payload: { command: ["kubectl", "get", "pods"], timeoutMs: 10_000 },
 });
 
 // LLM — call provider-openai worker directly (or use snoopy's defineAgent).
-const llmResponse = await sdk.trigger({
+const llmResponse = await iii.trigger({
   function_id: "openai::chat",
   payload: { model: "gpt-5-mini", messages: [...], tools: [...] },
 });
@@ -148,8 +148,12 @@ export const triage = defineAgent({
   triggers: [defineTrigger.webhook({ path: "/alerts" })],
   result: z.object({ severity: z.enum(["sev1","sev2","sev3"]) }),
   handler: async (alert, ctx) => {
-    // Inside the handler you can use ctx.session OR call any iii function directly.
-    const enrichment = await ctx.call("snoopy.enrichment", { alert });
+    // Inside the handler, ctx.iii is the same iii-sdk client. Call another
+    // agent or any iii function directly — no ctx.call wrapper:
+    const enrichment = await ctx.iii.trigger({
+      function_id: "snoopy.enrichment",
+      payload: { alert },
+    });
     return await ctx.session.prompt(`triage: ${alert.msg}`, { result });
   },
 });
@@ -159,19 +163,19 @@ export const triage = defineAgent({
 
 | Class | What it is | When to use |
 |---|---|---|
-| `StateKV(sdk)` | Typed `get/set/update/delete/list<T>` over `state::*` | TS users who want generics + autocomplete |
+| `StateKV(iii)` | Typed `get/set/update/delete/list<T>` over `state::*` | TS users who want generics + autocomplete |
 | `IIIStore` | Full `Memory` interface backed by iii state | Drop-in for `defineAgent({memory: new IIIStore()})` |
 | `IIIState(scope)` | Scoped shortcut for ad-hoc KV in agent code | Convenience when you don't want a `Memory` |
 | `iiiClient()` | Cached singleton SDK with snoopy-flavored config | Lazy-init in plain agent code; not required |
 
-None of these are required. They wrap nothing the user couldn't do themselves with a one-line `sdk.trigger(...)` call. They exist because TypeScript developers tend to prefer typed methods over stringly-typed function ids.
+None of these are required. They wrap nothing the user couldn't do themselves with a one-line `iii.trigger(...)` call. They exist because TypeScript developers tend to prefer typed methods over stringly-typed function ids.
 
 ## Files actually owned by snoopy (everything in `packages/core/src/`)
 
 The agent-specific value (what we'd write even if iii did everything else):
 
 - `defineAgent.ts` — the kernel
-- `session.ts` — the Session class with prompt/skill/task/shell/fs/compact
+- `session.ts` — the Session class with prompt/skill/shell/fs/compact
 - `loop.ts` — multi-turn tool-calling reasoning loop
 - `defineTool.ts` — registers tools as `<agent>::tool::<name>` iii functions + zod parse + idempotent replay
 - `defineTrigger.ts` — typed builders over iii's 10 trigger types

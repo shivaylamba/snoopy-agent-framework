@@ -104,24 +104,30 @@ export const triage = defineAgent({
 });
 ```
 
-Need to talk to iii directly? `ctx.sdk` is the raw `iii-sdk` client:
+Need to talk to iii directly? `ctx.iii` **is** the `iii-sdk` client — same
+instance you'd get from `registerWorker(III_WS_URL)`. No wrapper, no sugar
+layer; call the iii primitive you want:
 
 ```ts
-// state — direct iii primitive, no wrapping
-await ctx.sdk.trigger({
+// state — direct iii primitive
+await ctx.iii.trigger({
   function_id: "state::set",
   payload: { scope: "incidents", key: "inc_42", value: { status: "open" } },
 });
 
 // sandboxed exec — direct iii primitive
-await ctx.sdk.trigger({
+await ctx.iii.trigger({
   function_id: "sandbox::exec",
   payload: { command: ["kubectl", "get", "pods"] },
 });
 
-// fan out to another agent — direct iii primitive
-await ctx.sdk.trigger({ function_id: "sre.investigator", payload: { … } });
+// fan out to another agent — same primitive, different function_id
+await ctx.iii.trigger({ function_id: "sre.investigator", payload: { … } });
 ```
+
+That's the whole surface for distributed coordination. snoopy does not
+provide `ctx.call`, `ctx.spawn`, or `session.task` — those would just wrap
+`iii.trigger` and add nothing.
 
 ## Packages
 

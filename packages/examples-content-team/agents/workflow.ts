@@ -8,31 +8,27 @@ import { extractTextFromUrl } from "../tools/extract.js";
  * Content-team workflow orchestrator — iii-primitive-direct.
  *
  * ═══════════════════════════════════════════════════════════════════════════
- *  This handler uses iii primitives DIRECTLY via `ctx.sdk`. There is no
+ *  This handler uses iii primitives DIRECTLY via `ctx.iii`. There is no
  *  framework abstraction between this code and the iii engine.
  * ═══════════════════════════════════════════════════════════════════════════
  *
  *   Sub-agent invocation:
- *     await ctx.sdk.trigger({ function_id: "content.serp-analyze", payload, timeoutMs });
+ *     await ctx.iii.trigger({ function_id: "content.serp-analyze", payload, timeoutMs });
  *
  *   State persistence:
- *     await ctx.sdk.trigger({ function_id: "state::set",
+ *     await ctx.iii.trigger({ function_id: "state::set",
  *                             payload: { scope, key, value } });
  *
  *   Anything iii exposes — registerFunction, registerTrigger, trigger with
- *   any action, state, streams, queues, cron, sandbox — is on `ctx.sdk`.
- *
- *   ctx.call / ctx.spawn / ctx.session.task are convenience sugar over
- *   ctx.sdk.trigger that add tracing spans + a typed generic. Use them or
- *   don't — they're not load-bearing.
+ *   any action, state, streams, queues, cron, sandbox — is on `ctx.iii`.
  *
  *  What snoopy contributes here:
- *   - defineAgent → wraps this handler as an iii Function via sdk.registerFunction
- *   - defineTrigger → produces TriggerDef → sdk.registerTrigger
+ *   - defineAgent → registers this handler as an iii Function via iii.registerFunction
+ *   - defineTrigger → produces TriggerDef → iii.registerTrigger
  *   - dedupe gate (cached result in iii state)
  *   - role markdown discovery → system prompts
  *   - Zod structured-output parsing with auto-retry
- *   - trace span emission on every sdk.trigger call
+ *   - trace span emission
  *   - the reasoning loop inside sub-agents that have `tools:`
  * ═══════════════════════════════════════════════════════════════════════════
  */
@@ -71,12 +67,12 @@ export const contentSeoWorkflow = defineAgent<
     await mkdir(REPORTS_DIR, { recursive: true });
 
     // ── helper: persist a run-step record into iii state ─────────────────
-    // Calls `state::set` DIRECTLY on the iii SDK exposed via ctx.sdk. No
+    // Calls `state::set` DIRECTLY on the iii SDK exposed via ctx.iii. No
     // wrapping, no StateKV, no IIIStore — this is the standard iii primitive
     // surface that `iii worker add iii-state` provides. Survives engine
     // restart when iii-state is configured with `store_method: file_based`.
     const recordStep = async (step: string, data: Record<string, unknown>) => {
-      await ctx.sdk.trigger({
+      await ctx.iii.trigger({
         function_id: "state::set",
         payload: {
           scope: STATE_SCOPE,
@@ -110,13 +106,13 @@ export const contentSeoWorkflow = defineAgent<
     await recordStep("inputs-normalized", { hasUrl: !!input.url, hasContent: isExisting });
 
     // ── Step 2: topic extraction (only when we have raw content) ────────
-    // Direct iii primitive — `sdk.trigger({function_id, payload})`. Calling
+    // Direct iii primitive — `iii.trigger({function_id, payload})`. Calling
     // another snoopy agent is just calling any iii function: it's registered
     // under the same engine and dispatched the same way as state::set.
     let searchQuery: string;
     if (isExisting && !input.topic) {
       ctx.log.info("extracting topic from article");
-      const extracted = await ctx.sdk.trigger<unknown, {
+      const extracted = await ctx.iii.trigger<unknown, {
         mainTopic: string;
         articleTitle: string;
         keyThemes: string;
@@ -136,7 +132,7 @@ export const contentSeoWorkflow = defineAgent<
 
     // ── Step 3: SERP research + analysis ────────────────────────────────
     ctx.log.info("running SERP analysis");
-    const insights = await ctx.sdk.trigger<unknown, {
+    const insights = await ctx.iii.trigger<unknown, {
       primaryKeywords: string;
       relatedKeywords: string;
       relatedQuestions: string;
@@ -161,7 +157,7 @@ export const contentSeoWorkflow = defineAgent<
     // ── Step 4: mode branch ─────────────────────────────────────────────
     if (isExisting) {
       ctx.log.info("auditing existing article");
-      const audit = await ctx.sdk.trigger<unknown, {
+      const audit = await ctx.iii.trigger<unknown, {
         contentStrengths: string;
         contentGaps: string;
         keywordOpportunities: string;
@@ -185,7 +181,7 @@ export const contentSeoWorkflow = defineAgent<
       await recordStep("audit-complete", { auditPath });
 
       ctx.log.info("generating section rewrites");
-      const edits = await ctx.sdk.trigger<unknown, {
+      const edits = await ctx.iii.trigger<unknown, {
         improvedSections: string;
         keywordIntegrationSummary: string;
         changesExplanation: string;
@@ -248,7 +244,7 @@ Query this run later:
 
     // Brief mode
     ctx.log.info("generating pre-writing content brief");
-    const brief = await ctx.sdk.trigger<unknown, {
+    const brief = await ctx.iii.trigger<unknown, {
       targetIntent: string;
       contentOutline: string;
       recommendedHeadings: string;

@@ -6,7 +6,7 @@ export { defineTrigger } from "./defineTrigger.js";
 // ── session (Flue-style API) ────────────────────────────────────────────────
 export { Session, SessionRegistry } from "./session.js";
 export type {
-  PromptOptions, SkillOptions, TaskOptions, SessionInit, SessionOptions,
+  PromptOptions, SkillOptions, SessionInit, SessionOptions,
   Harness, PromptUsage,
 } from "./session.js";
 

@@ -1,5 +1,3 @@
-import { TriggerAction } from "iii-sdk";
-
 import { registerToolOnIii } from "./defineTool.js";
 import { IIIStore, type Memory } from "./memory.js";
 import { Span, emitSpan } from "./tracing.js";
@@ -135,9 +133,11 @@ export function defineAgent<TIn = unknown, TOut = unknown>(
       const ctx: AgentContext = {
         runId,
         memory,
-        // The raw iii SDK — user code uses this for any iii primitive directly.
-        // ctx.call / ctx.spawn are convenience wrappers over ctx.sdk.trigger.
-        sdk: iii,
+        // The iii SDK — user code uses this for any iii primitive directly
+        // (trigger, registerFunction, registerTrigger, state::*, sandbox::*, …).
+        // No wrappers — call iii.trigger({...}) the same way you would from
+        // any other iii worker.
+        iii,
         session: defaultSession,
         sessions,
         history: prior,
@@ -146,24 +146,6 @@ export function defineAgent<TIn = unknown, TOut = unknown>(
           info: (msg, data) => emitSpan(span, { event: "log.info", data: { msg, ...(data as object ?? {}) } }, memory),
           warn: (msg, data) => emitSpan(span, { event: "log.warn", data: { msg, ...(data as object ?? {}) } }, memory),
           error: (msg, data) => emitSpan(span, { event: "log.error", data: { msg, ...(data as object ?? {}) } }, memory),
-        },
-        spawn: async (childAgentId, childPayload) => {
-          emitSpan(span, { event: "agent.spawn", data: { child: childAgentId } }, memory);
-          return iii.trigger({
-            function_id: childAgentId,
-            payload: childPayload,
-            action: TriggerAction.Void(),
-          });
-        },
-        call: async <TR = unknown>(childAgentId: string, childPayload: unknown, opts?: { timeoutMs?: number }): Promise<TR> => {
-          emitSpan(span, { event: "agent.call", data: { child: childAgentId } }, memory);
-          const result = await iii.trigger<unknown, TR>({
-            function_id: childAgentId,
-            payload: childPayload,
-            timeoutMs: opts?.timeoutMs,
-          });
-          emitSpan(span, { event: "agent.call.return", data: { child: childAgentId } }, memory);
-          return result;
         },
       };
 

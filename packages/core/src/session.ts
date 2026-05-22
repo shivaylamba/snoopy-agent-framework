@@ -59,13 +59,6 @@ export interface SkillOptions<T = unknown> extends PromptOptions<T> {
   args?: Record<string, unknown>;
 }
 
-export interface TaskOptions<T = unknown> {
-  payload?: unknown;
-  timeoutMs?: number;
-  signal?: AbortSignal;
-  _result?: T;
-}
-
 export interface PromptUsage {
   in: number;
   out: number;
@@ -270,32 +263,6 @@ export class Session {
     }
     const rendered = renderSkill(skill.body, opts.args ?? {});
     return this.prompt<T>(rendered, opts);
-  }
-
-  // ─── task ──────────────────────────────────────────────────────────────
-
-  /**
-   * Optional sugar over `iii.trigger({function_id, payload, timeoutMs})`.
-   * Wraps the result in a CallHandle (signal + abort). Identical to:
-   *
-   *   const result = await ctx.sdk.trigger({
-   *     function_id: agentId, payload, timeoutMs,
-   *   });
-   *
-   * Use `ctx.sdk.trigger(...)` directly for the unwrapped iii primitive.
-   */
-  task<T = unknown>(agentId: string, opts: TaskOptions<T> = {}): CallHandle<T> {
-    return makeCallHandle<T>(
-      async (_signal) => {
-        const iii = iiiClient();
-        return iii.trigger<unknown, T>({
-          function_id: agentId,
-          payload: opts.payload ?? {},
-          timeoutMs: opts.timeoutMs,
-        });
-      },
-      opts.signal,
-    );
   }
 
   // ─── shell ─────────────────────────────────────────────────────────────

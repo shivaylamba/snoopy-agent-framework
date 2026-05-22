@@ -9,16 +9,23 @@ Port of [Arindam200/awesome-ai-apps content_team_agent](https://github.com/Arind
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ content.workflow         ← snoopy orchestrator (this example)   │
-│   └─ ctx.call("content.topic-extract", …)                       │
-│   └─ ctx.call("content.serp-analyze",  …)                       │
-│   └─ ctx.call("content.brief", …)  or  ("content.article-audit")│
-│   └─ ctx.call("content.section-edits", …)                       │
 │                                                                 │
-│   ── Direct iii primitive calls (no wrapping) ──                │
-│   await sdk.trigger({ function_id: "state::set",                │
-│                       payload: { scope, key, value } });        │
-│   await sdk.trigger({ function_id: "state::get", … });          │
-│   await sdk.trigger({ function_id: "state::list", … });         │
+│   ── Every step is a direct iii primitive call ──               │
+│   await ctx.iii.trigger({ function_id: "content.topic-extract", │
+│                           payload, timeoutMs });                │
+│   await ctx.iii.trigger({ function_id: "content.serp-analyze",  │
+│                           payload, timeoutMs });                │
+│   await ctx.iii.trigger({ function_id: "content.brief", … });   │
+│   await ctx.iii.trigger({ function_id: "content.article-audit", │
+│                           payload, timeoutMs });                │
+│   await ctx.iii.trigger({ function_id: "content.section-edits", │
+│                           payload, timeoutMs });                │
+│                                                                 │
+│   ── State + everything else: same primitive ──                 │
+│   await ctx.iii.trigger({ function_id: "state::set",            │
+│                           payload: { scope, key, value } });    │
+│   await ctx.iii.trigger({ function_id: "state::get", … });      │
+│   await ctx.iii.trigger({ function_id: "state::list", … });     │
 └─────────────────────────────────────────────────────────────────┘
               │
               ▼ all dispatched via the iii engine
@@ -45,7 +52,7 @@ The workflow handler calls iii state primitives **directly** — no `StateKV`, n
 
 ```ts
 // in workflow.ts — survives engine restart when iii-state is file-backed
-await sdk.trigger({
+await ctx.iii.trigger({
   function_id: "state::set",
   payload: {
     scope: "content.workflow:runs",
@@ -72,7 +79,7 @@ That's iii-state being used directly — exactly the surface `iii worker add iii
 | Concern | Where it lives |
 |---|---|
 | `defineAgent({ id, handler, result, ... })` kernel | `@snoopy/core` |
-| `ctx.call(childAgentId, payload, { timeoutMs })` | `@snoopy/core` AgentContext |
+| `ctx.iii` — the raw `iii-sdk` client (call `iii.trigger(...)` directly) | `@snoopy/core` AgentContext |
 | `ctx.session.prompt(text, { result: zodSchema })` | `@snoopy/core` Session |
 | Markdown roles in `roles/*.md` | discovered by `@snoopy/core` at runtime |
 | Zod schema → JSON Schema → tool params | `@snoopy/core` `defineTool` |
@@ -153,7 +160,7 @@ Run records also persist in iii state (`scope: content.workflow:runs`) — query
 | LLM | Nebius (Moonshot/Llama Nemotron) | OpenAI gpt-5-mini (any pi-ai provider if `@snoopy/llm-pi-ai`) |
 | Orchestration | `Workflow.arun()` in one Python process | Each sub-agent is a separate **iii function** — distributable across workers |
 | Tools | `@tool()` decorator, in-process | `defineTool()` → registers as `<agent>::tool::<name>` iii function — callable from anywhere |
-| Sub-agent calls | Direct in-process method calls | `ctx.call()` → `iii.trigger()` — runs on whichever worker has the function |
+| Sub-agent calls | Direct in-process method calls | `ctx.iii.trigger({function_id, payload})` — runs on whichever worker has the function |
 | Dynamic agent instructions | Mutates `agent.instructions` at runtime | Two separate agents (`content.brief`, `content.article-audit`) — cleaner separation |
 | Run history | None | Persisted via direct `state::set` calls — queryable, distributable, durable |
 | Dedupe | None | Payload-hash dedupe with 10min TTL |

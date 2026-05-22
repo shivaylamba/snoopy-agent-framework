@@ -4,8 +4,9 @@ import { kubectl } from "../tools/kubectl.js";
 import { gitLog } from "../tools/git.js";
 
 /**
- * Deep-dive investigator. Called synchronously from triage via `ctx.call`
- * when triage decides it needs more context before deciding severity.
+ * Deep-dive investigator. Called synchronously from triage via
+ * `ctx.iii.trigger({ function_id: "sre.investigator", payload })` when triage
+ * decides it needs more context before deciding severity.
  *
  * Returns structured findings so the parent (triage) can use them in its
  * final result.

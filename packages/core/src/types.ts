@@ -34,20 +34,18 @@ export interface AgentContext {
   memory: Memory;
 
   /**
-   * The raw iii SDK — use this for any iii primitive directly:
+   * The iii SDK — same instance returned by `registerWorker(III_WS_URL)`.
+   * Every distributed coordination operation is a direct iii primitive call:
    *
-   *   await ctx.sdk.trigger({ function_id: "sre.investigator", payload: {...} });
-   *   await ctx.sdk.trigger({ function_id: "state::set", payload: {...} });
-   *   await ctx.sdk.trigger({ function_id: "sandbox::exec", payload: {...} });
-   *   ctx.sdk.registerFunction("dynamic.fn", handler);
-   *   ctx.sdk.registerTrigger({ type: "cron", function_id, config });
+   *   await ctx.iii.trigger({ function_id: "sre.investigator", payload: {...} });
+   *   await ctx.iii.trigger({ function_id: "state::set", payload: {...} });
+   *   await ctx.iii.trigger({ function_id: "sandbox::exec", payload: {...} });
+   *   ctx.iii.registerFunction("dynamic.fn", handler);
+   *   ctx.iii.registerTrigger({ type: "cron", function_id, config });
    *
-   * snoopy does NOT wrap iii — `ctx.sdk` is the same instance returned by
-   * `registerWorker(III_WS_URL)`. Every distributed coordination operation
-   * (calling other agents, reading state, scheduling) is a `ctx.sdk.trigger`
-   * call against an iii function id.
+   * There is no snoopy wrapper layer between this and the iii engine.
    */
-  sdk: ISdk;
+  iii: ISdk;
 
   /** Default session — Flue-shaped reasoning loop with tool calling. */
   session: Session;
@@ -57,34 +55,6 @@ export interface AgentContext {
   log: FlueLogger;
   /** Low-level span emitter. Prefer `log` for prose. */
   emit: (event: string, data?: unknown) => void;
-
-  /**
-   * Optional sugar over `ctx.sdk.trigger({function_id, payload, action: Void()})`.
-   * Adds a trace span. Identical to:
-   *
-   *   await ctx.sdk.trigger({
-   *     function_id: childAgentId, payload, action: TriggerAction.Void(),
-   *   });
-   *
-   * Use `ctx.sdk.trigger(...)` directly if you don't want the span.
-   */
-  spawn: (childAgentId: string, payload: unknown) => Promise<unknown>;
-
-  /**
-   * Optional sugar over `ctx.sdk.trigger({function_id, payload, timeoutMs})`.
-   * Adds entry/exit trace spans + a typed return generic. Identical to:
-   *
-   *   const result = await ctx.sdk.trigger<TIn, TOut>({
-   *     function_id: childAgentId, payload, timeoutMs,
-   *   });
-   *
-   * Use `ctx.sdk.trigger(...)` directly for the unwrapped iii primitive.
-   */
-  call: <TOut = unknown>(
-    childAgentId: string,
-    payload: unknown,
-    opts?: { timeoutMs?: number },
-  ) => Promise<TOut>;
 
   history?: ChatMessage[];
 }
